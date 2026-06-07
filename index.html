@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ThumbPro — AI Thumbnail Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #09090f;
+    --surface: #111119;
+    --card: #16161f;
+    --border: rgba(255,255,255,0.07);
+    --accent: #e8ff47;
+    --accent2: #ff6b35;
+    --text: #f0f0f5;
+    --muted: #7b7b8f;
+    --font-head: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ─── NOISE OVERLAY ─── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 5%;
+    height: 68px;
+    background: rgba(9,9,15,0.85);
+    backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: 1.35rem;
+    letter-spacing: -0.03em;
+    color: var(--text);
+  }
+  .logo span { color: var(--accent); }
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+  }
+  .nav-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--text); }
+  .nav-cta {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+  .btn-ghost {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 0.5rem 1.1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-family: var(--font-body);
+    transition: all 0.2s;
+  }
+  .btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+  .btn-primary {
+    background: var(--accent);
+    color: #09090f;
+    border: none;
+    padding: 0.55rem 1.3rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: var(--font-body);
+    transition: all 0.2s;
+  }
+  .btn-primary:hover { background: #d4eb30; transform: translateY(-1px); }
+
+  /* ─── HERO ─── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 120px 5% 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Glow bg */
+  .hero::after {
+    content: '';
+    position: absolute;
+    width: 800px;
+    height: 800px;
+    background: radial-gradient(ellipse, rgba(232,255,71,0.07) 0%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -60%);
+    pointer-events: none;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(232,255,71,0.08);
+    border: 1px solid rgba(232,255,71,0.2);
+    color: var(--accent);
+    padding: 0.35rem 0.9rem;
+    border-radius: 100px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 1.8rem;
+    animation: fadeUp 0.7s ease both;
+  }
+  .badge-dot {
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  h1 {
+    font-family: var(--font-head);
+    font-size: clamp(2.6rem, 6vw, 5rem);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -0.04em;
+    max-width: 760px;
+    animation: fadeUp 0.7s 0.1s ease both;
+  }
+  h1 em {
+    font-style: normal;
+    background: linear-gradient(135deg, var(--accent) 0%, #b8ff00 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    color: var(--muted);
+    font-size: 1.05rem;
+    max-width: 520px;
+    margin: 1.5rem auto 2.5rem;
+    font-weight: 300;
+    animation: fadeUp 0.7s 0.2s ease both;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    animation: fadeUp 0.7s 0.3s ease both;
+  }
+  .btn-hero {
+    background: var(--accent);
+    color: #09090f;
+    border: none;
+    padding: 0.85rem 2rem;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: var(--font-body);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.25s;
+    box-shadow: 0 0 30px rgba(232,255,71,0.25);
+  }
+  .btn-hero:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 50px rgba(232,255,71,0.4);
+  }
+  .btn-outline {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.85rem 2rem;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: var(--font-body);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.25s;
+  }
+  .btn-outline:hover { border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.04); }
+
+  /* Input area */
+  .hero-input-wrap {
+    margin-top: 3rem;
+    width: 100%;
+    max-width: 600px;
+    animation: fadeUp 0.7s 0.4s ease both;
+  }
+  .url-input-box {
+    display: flex;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .url-input-box:focus-within { border-color: rgba(232,255,71,0.35); }
+  .url-input-box input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    padding: 0.9rem 1.2rem;
+  }
+  .url-input-box input::placeholder { color: var(--muted); }
+  .url-input-box button {
+    background: var(--accent);
+    color: #09090f;
+    border: none;
+    padding: 0.9rem 1.4rem;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: var(--font-body);
+    transition: background 0.2s;
+    white-space: nowrap;
+  }
+  .url-input-box button:hover { background: #d4eb30; }
+
+  .divider-text {
+    color: var(--muted);
+    font-size: 0.78rem;
+    margin: 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .divider-text::before, .divider-text::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Stats */
+  .hero-stats {
+    display: flex;
+    gap: 2.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 4rem;
+    animation: fadeUp 0.7s 0.5s ease both;
+  }
+  .stat {
+    text-align: center;
+  }
+  .stat-num {
+    font-family: var(--font-head);
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.04em;
+  }
+  .stat-num span { color: var(--accent); }
+  .stat-label {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 0.2rem;
+  }
+
+  /* ─── SECTION SHARED ─── */
+  section {
+    padding: 100px 5%;
+  }
+  .section-tag {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1rem;
+  }
+  .section-title {
+    font-family: var(--font-head);
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    max-width: 600px;
+  }
+  .section-sub {
+    color: var(--muted);
+    font-size: 0.95rem;
+    margin-top: 0.75rem;
+    max-width: 460px;
+  }
+  .section-header {
+    margin-bottom: 4rem;
+  }
+  .centered { text-align: center; }
+  .centered .section-title, .centered .section-sub { margin-left: auto; margin-right: auto; }
+
+  /* ─── FEATURES ─── */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .feat-card {
+    background: var(--card);
+    padding: 2.5rem 2rem;
+    transition: background 0.25s;
+    position: relative;
+  }
+  .feat-card:hover { background: #1c1c28; }
+  .feat-icon {
+    width: 44px; height: 44px;
+    background: rgba(232,255,71,0.08);
+    border: 1px solid rgba(232,255,71,0.15);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    margin-bottom: 1.3rem;
+  }
+  .feat-card h3 {
+    font-family: var(--font-head);
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+    letter-spacing: -0.02em;
+  }
+  .feat-card p {
+    color: var(--muted);
+    font-size: 0.88rem;
+    line-height: 1.65;
+  }
+
+  /* ─── HOW IT WORKS ─── */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    position: relative;
+  }
+  .steps::before {
+    content: '';
+    position: absolute;
+    top: 2.5rem;
+    left: calc(16.67% + 1rem);
+    right: calc(16.67% + 1rem);
+    height: 1px;
+    background: linear-gradient(90deg, var(--accent), transparent 50%, var(--accent));
+    opacity: 0.25;
+    pointer-events: none;
+  }
+  .step {
+    text-align: center;
+  }
+  .step-num {
+    width: 48px; height: 48px;
+    background: var(--card);
+    border: 1px solid rgba(232,255,71,0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: var(--accent);
+    margin: 0 auto 1.5rem;
+  }
+  .step h3 {
+    font-family: var(--font-head);
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  .step p { color: var(--muted); font-size: 0.87rem; }
+
+  /* ─── USE CASES ─── */
+  .usecases-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+  .usecase-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.6rem;
+    transition: all 0.25s;
+    cursor: pointer;
+  }
+  .usecase-card:hover {
+    border-color: rgba(232,255,71,0.25);
+    background: #1c1c28;
+    transform: translateY(-3px);
+  }
+  .usecase-emoji { font-size: 1.6rem; margin-bottom: 0.75rem; }
+  .usecase-card h4 {
+    font-family: var(--font-head);
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+  }
+  .usecase-card p { color: var(--muted); font-size: 0.8rem; }
+
+  /* ─── TESTIMONIALS ─── */
+  .testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+  }
+  .testi-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.8rem;
+    position: relative;
+    transition: border-color 0.25s;
+  }
+  .testi-card:hover { border-color: rgba(232,255,71,0.15); }
+  .testi-stars {
+    color: var(--accent);
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.9rem;
+  }
+  .testi-card blockquote {
+    color: var(--text);
+    font-size: 0.9rem;
+    line-height: 1.65;
+    font-weight: 300;
+    margin-bottom: 1.2rem;
+  }
+  .testi-author {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .testi-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #09090f;
+    flex-shrink: 0;
+  }
+  .testi-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .testi-handle {
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  /* ─── CTA SECTION ─── */
+  .cta-section {
+    padding: 100px 5%;
+    position: relative;
+    overflow: hidden;
+  }
+  .cta-box {
+    max-width: 860px;
+    margin: 0 auto;
+    background: var(--card);
+    border: 1px solid rgba(232,255,71,0.12);
+    border-radius: 24px;
+    padding: 5rem 4rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .cta-box::before {
+    content: '';
+    position: absolute;
+    width: 500px; height: 500px;
+    background: radial-gradient(ellipse, rgba(232,255,71,0.06) 0%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+  .cta-box h2 {
+    font-family: var(--font-head);
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1.15;
+    margin-bottom: 1rem;
+  }
+  .cta-box p {
+    color: var(--muted);
+    font-size: 0.95rem;
+    max-width: 440px;
+    margin: 0 auto 2.5rem;
+  }
+  .cta-metrics {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    margin-top: 3.5rem;
+    flex-wrap: wrap;
+  }
+  .cta-metric .num {
+    font-family: var(--font-head);
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--accent);
+  }
+  .cta-metric .label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 0.2rem;
+  }
+
+  /* ─── FOOTER ─── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 3rem 5%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+  }
+  .footer-logo {
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--text);
+  }
+  .footer-logo span { color: var(--accent); }
+  .footer-links {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .footer-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.82rem;
+    transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--text); }
+  .footer-copy {
+    color: var(--muted);
+    font-size: 0.78rem;
+  }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 720px) {
+    .nav-links { display: none; }
+    .steps { grid-template-columns: 1fr; }
+    .steps::before { display: none; }
+    .cta-box { padding: 3rem 2rem; }
+    .hero-stats { gap: 1.5rem; }
+    footer { flex-direction: column; text-align: center; }
+    .footer-links { justify-content: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Thumb<span>Pro</span></div>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#usecases">Use cases</a></li>
+    <li><a href="#">Pricing</a></li>
+  </ul>
+  <div class="nav-cta">
+    <button class="btn-ghost">Log in</button>
+    <button class="btn-primary">Start free →</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="badge"><span class="badge-dot"></span> #1 AI Thumbnail Generator</div>
+  <h1>Create <em>viral thumbnails</em> that demand clicks</h1>
+  <p class="hero-sub">Generate studio-quality YouTube thumbnails in seconds — powered by AI trained on millions of high-CTR creatives. No design skills needed.</p>
+  <div class="hero-actions">
+    <button class="btn-hero">⚡ Generate Free Thumbnails</button>
+    <button class="btn-outline">▶ Watch Demo</button>
+  </div>
+  <div class="hero-input-wrap">
+    <div class="url-input-box">
+      <input type="text" placeholder="Paste your YouTube URL here…" />
+      <button>Generate →</button>
+    </div>
+    <div class="divider-text">or upload your video directly</div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num">50<span>K+</span></div>
+      <div class="stat-label">Active creators</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">4.9<span>★</span></div>
+      <div class="stat-label">Average rating</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">+<span>50%</span></div>
+      <div class="stat-label">Average CTR boost</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">2M<span>+</span></div>
+      <div class="stat-label">Thumbnails created</div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-header centered reveal">
+    <div class="section-tag">Features</div>
+    <h2 class="section-title">Everything you need to win clicks</h2>
+    <p class="section-sub">AI-powered tools designed for modern creators who refuse to blend in.</p>
+  </div>
+  <div class="features-grid reveal">
+    <div class="feat-card">
+      <div class="feat-icon">⚡</div>
+      <h3>Instant AI Generation</h3>
+      <p>Upload your video or paste a URL — get multiple high-CTR thumbnail options in under 10 seconds.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🎭</div>
+      <h3>Smart Expression Swap</h3>
+      <p>Automatically detects your face and suggests the most engaging expression for maximum viewer curiosity.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🎨</div>
+      <h3>Proven Creator Templates</h3>
+      <p>Viral-tested layouts used by top YouTubers. Each template is optimized for your niche.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🔬</div>
+      <h3>Built for A/B Testing</h3>
+      <p>Generate 10 variations in one click. Let data tell you which thumbnail wins before you publish.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">📐</div>
+      <h3>Platform-Ready Exports</h3>
+      <p>Download in 4K, perfectly sized for YouTube, Shorts, TikTok, and Instagram Reels.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🏷️</div>
+      <h3>AI Text Overlays</h3>
+      <p>Bold, scroll-stopping text generated by AI — tuned to trigger curiosity and urgency.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how" style="background: var(--surface);">
+  <div class="section-header centered reveal">
+    <div class="section-tag">How it works</div>
+    <h2 class="section-title">From video to viral thumbnail in 3 steps</h2>
+    <p class="section-sub">Our AI studies your content and generates thumbnails designed to outperform generic ones.</p>
+  </div>
+  <div class="steps reveal">
+    <div class="step">
+      <div class="step-num">01</div>
+      <h3>Import your video</h3>
+      <p>Paste a YouTube URL or upload your video file. AI extracts key moments and visual hooks automatically.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <h3>Pick & customize</h3>
+      <p>Choose from AI-generated layouts. Adjust text, colors, expressions, and backgrounds with zero design skills needed.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <h3>Export & publish</h3>
+      <p>Download in 4K studio quality. A/B test your best options and watch your view count climb.</p>
+    </div>
+  </div>
+</section>
+
+<!-- USE CASES -->
+<section id="usecases">
+  <div class="section-header reveal">
+    <div class="section-tag">Use cases</div>
+    <h2 class="section-title">Built for every kind of creator</h2>
+    <p class="section-sub">Whether you're a solo YouTuber or a content agency — ThumbPro scales with you.</p>
+  </div>
+  <div class="usecases-grid reveal">
+    <div class="usecase-card">
+      <div class="usecase-emoji">🎮</div>
+      <h4>Gaming</h4>
+      <p>High-energy, click-magnet thumbnails for every genre.</p>
+    </div>
+    <div class="usecase-card">
+      <div class="usecase-emoji">🎙️</div>
+      <h4>Vlogging</h4>
+      <p>Personal, expressive thumbnails that match your brand.</p>
+    </div>
+    <div class="usecase-card">
+      <div class="usecase-emoji">💼</div>
+      <h4>Business & Finance</h4>
+      <p>Clean, authoritative designs that build trust instantly.</p>
+    </div>
+    <div class="usecase-card">
+      <div class="usecase-emoji">🎓</div>
+      <h4>Education</h4>
+      <p>Informative yet attention-grabbing educational visuals.</p>
+    </div>
+    <div class="usecase-card">
+      <div class="usecase-emoji">🏋️</div>
+      <h4>Fitness</h4>
+      <p>Motivating, bold thumbnails that drive watch time.</p>
+    </div>
+    <div class="usecase-card">
+      <div class="usecase-emoji">🏢</div>
+      <h4>Agencies</h4>
+      <p>Produce 100+ on-brand thumbnails per week at scale.</p>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section style="background: var(--surface);">
+  <div class="section-header centered reveal">
+    <div class="section-tag">What they say</div>
+    <h2 class="section-title">Results creators actually see</h2>
+  </div>
+  <div class="testimonials-grid reveal">
+    <div class="testi-card">
+      <div class="testi-stars">★★★★★</div>
+      <blockquote>"ThumbPro cut my thumbnail design time from 2 hours to 5 minutes. My CTR went from 4% to 9% in the first month."</blockquote>
+      <div class="testi-author">
+        <div class="testi-avatar">NK</div>
+        <div>
+          <div class="testi-name">Nick Kaur</div>
+          <div class="testi-handle">1.2M subscribers · Tech</div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-card">
+      <div class="testi-stars">★★★★★</div>
+      <blockquote>"I manage 12 YouTube channels for clients. ThumbPro is the only tool that actually scales without sacrificing quality."</blockquote>
+      <div class="testi-author">
+        <div class="testi-avatar">SA</div>
+        <div>
+          <div class="testi-name">Sasha Aleksandrova</div>
+          <div class="testi-handle">Content Agency · 12 channels</div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-card">
+      <div class="testi-stars">★★★★★</div>
+      <blockquote>"The A/B testing feature alone is worth the price. I tested 6 thumbnails last week and found one that gets 3× the clicks."</blockquote>
+      <div class="testi-author">
+        <div class="testi-avatar">JM</div>
+        <div>
+          <div class="testi-name">James Masi</div>
+          <div class="testi-handle">Gaming · 840K subscribers</div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-card">
+      <div class="testi-stars">★★★★★</div>
+      <blockquote>"Never going back to Photoshop. This tool is genuinely smarter than any designer I've hired — and 10× faster."</blockquote>
+      <div class="testi-author">
+        <div class="testi-avatar">BD</div>
+        <div>
+          <div class="testi-name">Badis Design</div>
+          <div class="testi-handle">Design & Tutorials</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-box reveal">
+    <h2>Stop losing views to<br>mediocre thumbnails</h2>
+    <p>Generate studio-quality thumbnails that stop scrolling and drive clicks in seconds. No design skills needed.</p>
+    <button class="btn-hero" style="margin: 0 auto;">⚡ Start for free — no card needed</button>
+    <div class="cta-metrics">
+      <div class="cta-metric">
+        <div class="num">+50%</div>
+        <div class="label">Average CTR increase</div>
+      </div>
+      <div class="cta-metric">
+        <div class="num">2×</div>
+        <div class="label">Faster production</div>
+      </div>
+      <div class="cta-metric">
+        <div class="num">90%</div>
+        <div class="label">Less design cost</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Thumb<span>Pro</span></div>
+  <div class="footer-links">
+    <a href="#">Features</a>
+    <a href="#">Pricing</a>
+    <a href="#">Blog</a>
+    <a href="#">Affiliate</a>
+    <a href="#">Privacy Policy</a>
+    <a href="#">Terms of Service</a>
+  </div>
+  <div class="footer-copy">© 2025 ThumbPro. All rights reserved.</div>
+</footer>
+
+<script>
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  reveals.forEach(el => io.observe(el));
+</script>
+</body>
+</html>
