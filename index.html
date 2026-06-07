@@ -17,7 +17,6 @@
 html{scroll-behavior:smooth}
 body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
 
-/* NOISE OVERLAY */
 body::after{content:'';position:fixed;inset:0;opacity:0.025;pointer-events:none;z-index:9999;
   background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 
@@ -32,6 +31,24 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 4%;h
   padding:0.25rem 0.7rem;border-radius:100px}
 .nb-red{background:rgba(255,61,90,0.15);border:1px solid rgba(255,61,90,0.3);color:#ff3d5a}
 .nb-yellow{background:rgba(255,204,0,0.12);border:1px solid rgba(255,204,0,0.25);color:#ffcc00}
+.nb-groq{background:rgba(0,255,148,0.12);border:1px solid rgba(0,255,148,0.3);color:#00ff94}
+
+/* API KEY BANNER */
+.api-banner{background:rgba(0,255,148,0.04);border-bottom:1px solid rgba(0,255,148,0.1);padding:0.6rem 4%;display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap}
+.api-banner-label{font-size:0.72rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:#00ff94;flex-shrink:0}
+.api-key-input{flex:1;min-width:200px;background:rgba(0,0,0,0.3);border:1px solid rgba(0,255,148,0.2);border-radius:8px;
+  color:var(--text);font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:600;
+  padding:0.45rem 0.8rem;outline:none;transition:border-color .2s}
+.api-key-input:focus{border-color:rgba(0,255,148,0.5);box-shadow:0 0 0 3px rgba(0,255,148,0.06)}
+.api-key-input::placeholder{color:var(--muted)}
+.api-save-btn{padding:0.45rem 1rem;border-radius:8px;background:rgba(0,255,148,0.15);border:1px solid rgba(0,255,148,0.3);
+  color:#00ff94;font-family:'Nunito',sans-serif;font-size:0.78rem;font-weight:800;cursor:pointer;
+  letter-spacing:0.06em;transition:all .2s;white-space:nowrap}
+.api-save-btn:hover{background:rgba(0,255,148,0.25)}
+.api-status{font-size:0.72rem;font-weight:700;color:var(--muted);flex-shrink:0}
+.api-status.ok{color:#00ff94}
+.groq-link{font-size:0.72rem;font-weight:700;color:var(--muted);text-decoration:none;white-space:nowrap}
+.groq-link:hover{color:#00ff94}
 
 /* HERO */
 .hero{text-align:center;padding:4rem 4% 2.5rem;position:relative}
@@ -46,6 +63,10 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 4%;h
 .hero h1 .y{color:var(--accent2);text-shadow:0 0 30px rgba(255,204,0,0.4)}
 .hero h1 .r{color:var(--accent);text-shadow:0 0 30px rgba(255,61,90,0.4)}
 .hero-sub{color:var(--muted);font-size:0.95rem;font-weight:600;margin-bottom:2rem;line-height:1.6}
+.powered-badge{display:inline-flex;align-items:center;gap:0.4rem;font-size:0.7rem;font-weight:800;
+  letter-spacing:0.1em;text-transform:uppercase;color:#00ff94;
+  background:rgba(0,255,148,0.08);border:1px solid rgba(0,255,148,0.2);
+  padding:0.3rem 0.8rem;border-radius:100px;margin-bottom:1rem}
 
 /* STEP INDICATORS */
 .steps-bar{display:flex;align-items:center;justify-content:center;gap:0;margin:0 auto 3rem;max-width:600px;flex-wrap:wrap}
@@ -112,8 +133,8 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 4%;h
 /* LOADING */
 .loading{display:none;flex-direction:column;align-items:center;padding:3.5rem 2rem;gap:1.2rem}
 .loading.show{display:flex}
-.lring{width:56px;height:56px;border-radius:50%;border:3px solid rgba(255,61,90,0.15);
-  border-top-color:#ff3d5a;border-right-color:#ffcc00;animation:spin 0.9s linear infinite}
+.lring{width:56px;height:56px;border-radius:50%;border:3px solid rgba(0,255,148,0.15);
+  border-top-color:#00ff94;border-right-color:#ffcc00;animation:spin 0.9s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .lsteps{display:flex;flex-direction:column;gap:0.5rem;align-items:flex-start;width:100%;max-width:280px}
 .lstep{font-size:0.82rem;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:0.5rem;
@@ -123,6 +144,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 4%;h
 .lstep-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0;transition:all .3s}
 .lstep.on .lstep-dot{background:var(--accent2);box-shadow:0 0 8px rgba(255,204,0,0.6)}
 .lstep.done .lstep-dot{background:var(--green)}
+.groq-speed{font-size:0.75rem;color:#00ff94;font-weight:700;margin-top:0.5rem;opacity:0.8}
 
 /* IDEAS GRID */
 .ideas-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.2rem;margin-bottom:1.5rem}
@@ -222,11 +244,19 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 4%;h
   background:var(--card);padding:0 1rem;font-size:0.7rem;font-weight:800;letter-spacing:0.1em;
   text-transform:uppercase;color:var(--muted)}
 
+/* MODEL SELECT */
+.model-row{display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.8rem}
+.mpill{padding:0.35rem 0.9rem;border-radius:8px;font-size:0.75rem;font-weight:700;
+  border:1px solid var(--border);background:none;color:var(--muted);cursor:pointer;
+  transition:all .2s;font-family:'Nunito',sans-serif}
+.mpill.on{background:rgba(0,255,148,0.1);border-color:rgba(0,255,148,0.3);color:#00ff94}
+
 @media(max-width:600px){
   .options-grid,.cp-grid{grid-template-columns:1fr 1fr}
   .ideas-grid{grid-template-columns:1fr}
   .steps-bar{gap:0.5rem}
   .hero h1{font-size:3rem}
+  .api-banner{gap:0.5rem}
 }
 </style>
 </head>
@@ -236,12 +266,22 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 4%;h
   <div class="logo">THUMBPRO</div>
   <div class="nav-right">
     <div class="nbadge nb-red">🎬 YouTube</div>
-    <div class="nbadge nb-yellow">⚡ AI</div>
+    <div class="nbadge nb-groq">⚡ Groq AI</div>
   </div>
 </nav>
 
+<!-- GROQ API KEY BANNER -->
+<div class="api-banner">
+  <div class="api-banner-label">🔑 Groq API Key</div>
+  <input class="api-key-input" type="password" id="groqKeyInput" placeholder="gsk_xxxxxxxxxxxxxxxxxxxx" oninput="checkKey()">
+  <button class="api-save-btn" onclick="saveKey()">💾 Save Key</button>
+  <span class="api-status" id="apiStatus">⚪ Key nahi diya</span>
+  <a class="groq-link" href="https://console.groq.com/keys" target="_blank">→ Free key lao groq.com</a>
+</div>
+
 <!-- HERO -->
 <div class="hero">
+  <div class="powered-badge">⚡ Powered by Groq — Ultra Fast AI</div>
   <div class="hero-badge">🔥 For Real Indian Creators</div>
   <h1>VIRAL <span class="y">THUMBNAILS</span><br>IN <span class="r">30 SECONDS</span></h1>
   <p class="hero-sub">Step 1: AI generates ideas → Step 2: Upload your photo → Step 3: Download</p>
@@ -331,6 +371,17 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 4%;h
     </div>
   </div>
 
+  <!-- GROQ MODEL SELECT -->
+  <div style="margin-top:1rem">
+    <span class="field-label">Groq Model</span>
+    <div class="model-row">
+      <button class="mpill on" onclick="setModel('llama-3.3-70b-versatile',this)">🦙 Llama 3.3 70B</button>
+      <button class="mpill" onclick="setModel('llama3-8b-8192',this)">⚡ Llama 3 8B (Fastest)</button>
+      <button class="mpill" onclick="setModel('mixtral-8x7b-32768',this)">🌀 Mixtral 8x7B</button>
+      <button class="mpill" onclick="setModel('gemma2-9b-it',this)">💎 Gemma2 9B</button>
+    </div>
+  </div>
+
   <div style="margin-top:1rem">
     <span class="field-label">Language</span>
     <div class="lang-row">
@@ -355,6 +406,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 4%;h
     <div class="lstep" id="ls2"><div class="lstep-dot"></div>✍️ Bold headlines likh raha hoon...</div>
     <div class="lstep" id="ls3"><div class="lstep-dot"></div>✅ Ideas ready kar raha hoon...</div>
   </div>
+  <div class="groq-speed">⚡ Groq se ultra-fast response aa raha hai...</div>
 </div>
 
 <!-- STEP 2: IDEAS -->
@@ -391,7 +443,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 4%;h
       </div>
     </div>
 
-    <div style="margin-top:1.2rem" id="photoControls" style="display:none">
+    <div style="margin-top:1.2rem;display:none" id="photoControls">
       <span class="field-label">Photo Position</span>
       <div class="pos-grid" id="posGrid">
         <button class="pos-btn" onclick="setPos('left-full',this)">◀ Left Full</button>
@@ -453,11 +505,56 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 4%;h
 <script>
 // ===================== STATE =====================
 let lang = 'en';
+let selectedModel = 'llama-3.3-70b-versatile';
 let selectedIdea = null;
 let photoImg = null;
 let photoPos = 'right';
 let currentColor = 'dark';
 let parsedData = null;
+let groqApiKey = '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';
+
+// ===================== API KEY MANAGEMENT =====================
+function loadKey() {
+  const saved = localStorage.getItem('groq_api_key');
+  if (saved) {
+    groqApiKey = saved;
+    document.getElementById('groqKeyInput').value = saved;
+    updateKeyStatus(true);
+  }
+}
+
+function saveKey() {
+  const val = document.getElementById('groqKeyInput').value.trim();
+  if (!val) { showToast('⚠️ API key daalo pehle!'); return; }
+  if (!val.startsWith('gsk_')) { showToast('⚠️ Groq key gsk_ se shuru hoti hai'); return; }
+  groqApiKey = val;
+  localStorage.setItem('groq_api_key', val);
+  updateKeyStatus(true);
+  showToast('✅ API Key save ho gayi!');
+}
+
+function checkKey() {
+  const val = document.getElementById('groqKeyInput').value.trim();
+  if (val.startsWith('gsk_') && val.length > 20) {
+    groqApiKey = val;
+    updateKeyStatus(true);
+  } else {
+    updateKeyStatus(false);
+  }
+}
+
+function updateKeyStatus(ok) {
+  const el = document.getElementById('apiStatus');
+  el.textContent = ok ? '✅ Key ready!' : '⚪ Key nahi diya';
+  el.className = 'api-status' + (ok ? ' ok' : '');
+}
+
+// ===================== MODEL SELECT =====================
+function setModel(m, btn) {
+  selectedModel = m;
+  document.querySelectorAll('.mpill').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+}
 
 // ===================== THEMES =====================
 const THEMES = {
@@ -501,22 +598,60 @@ function startLoading() {
     if(cur>0) document.getElementById('ls'+(cur-1)).classList.replace('on','done');
     if(cur<4) {document.getElementById('ls'+cur).classList.add('on');cur++;}
     else clearInterval(loadTimer);
-  },700);
+  },600);
+}
+
+// ===================== GROQ API CALL =====================
+async function callGroqAPI(prompt) {
+  if (!groqApiKey) throw new Error('API key daalo pehle! Groq.com se free key lo.');
+
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${groqApiKey}`
+    },
+    body: JSON.stringify({
+      model: selectedModel,
+      max_tokens: 1500,
+      temperature: 0.8,
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a top YouTube thumbnail expert for Indian creators. Always respond with valid JSON only — no markdown, no explanation, just raw JSON.'
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ]
+    })
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    const msg = err?.error?.message || `Groq API Error ${res.status}`;
+    throw new Error(msg);
+  }
+
+  const data = await res.json();
+  return data.choices[0].message.content;
 }
 
 // ===================== GENERATE IDEAS =====================
 async function generateIdeas() {
   const topic = document.getElementById('topicInput').value.trim();
   if (!topic) { showToast('⚠️ Topic likhna zaroori hai!'); return; }
+  if (!groqApiKey) { showToast('⚠️ Pehle Groq API key daalo upar!'); return; }
 
   const niche = document.getElementById('nicheSelect').value;
   const tone = document.getElementById('toneSelect').value;
   const count = parseInt(document.getElementById('countSelect').value);
   currentColor = document.getElementById('colorSelect').value;
 
-  const langNote = lang==='hi' ? 'Hindi (Devanagari).'
+  const langNote = lang==='hi' ? 'Hindi (Devanagari script).'
     : lang==='hi-en' ? 'Hinglish (Roman Hindi-English mix like "VIRAL हो जाओ" or "₹1 LAKH KAMAO").'
-    : 'English.';
+    : 'English only.';
 
   document.getElementById('genBtn').disabled = true;
   document.getElementById('loading').classList.add('show');
@@ -530,15 +665,15 @@ async function generateIdeas() {
 VIDEO TOPIC: "${topic}"
 NICHE: ${niche} | STYLE: ${tone} | LANGUAGE: ${langNote}
 
-Return ONLY valid JSON, no markdown:
+Return ONLY valid JSON (no markdown, no backticks):
 {
   "thumbnails":[
     {
-      "style":"Style name",
+      "style":"Style name (2-3 words)",
       "headline":"MAIN TEXT MAX 4 WORDS ALL CAPS",
       "subtext":"Supporting line max 7 words",
       "badge":"Short badge: VIRAL / SECRET / FREE / NEW etc",
-      "stat":"Eye-catching number like 10X ₹1L #1 300% (optional, keep short)",
+      "stat":"Eye-catching number like 10X or ₹1L or #1 (optional)",
       "emoji":"One attention-grabbing emoji",
       "layout":"full or split",
       "why":"One sentence: why this gets clicks psychologically"
@@ -548,23 +683,18 @@ Return ONLY valid JSON, no markdown:
 }`;
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,
-        messages:[{role:'user',content:prompt}]})
-    });
-    if(!res.ok) throw new Error('API '+res.status);
-    const data = await res.json();
-    const raw = data.content.map(b=>b.text||'').join('');
+    const raw = await callGroqAPI(prompt);
     const m = raw.match(/\{[\s\S]*\}/);
-    if(!m) throw new Error('Parse error');
+    if (!m) throw new Error('JSON parse error — model ne galat format diya');
     parsedData = JSON.parse(m[0]);
+    if (!parsedData.thumbnails || !parsedData.thumbnails.length) throw new Error('Thumbnails nahi mile response mein');
     renderIdeas(parsedData);
   } catch(e) {
     document.getElementById('errMsg').textContent = e.message;
     document.getElementById('errBox').classList.add('show');
+    showToast('❌ Error: ' + e.message.substring(0,50));
   } finally {
+    clearInterval(loadTimer);
     document.getElementById('genBtn').disabled = false;
     document.getElementById('loading').classList.remove('show');
   }
@@ -580,14 +710,14 @@ function renderIdeas(data) {
     const card = document.createElement('div');
     card.className = 'idea-card';
     card.innerHTML = `
-      <div class="idea-style">${t.style}</div>
+      <div class="idea-style">${t.style || 'Design '+(i+1)}</div>
       <div class="idea-headline">${t.headline}</div>
       <div class="idea-sub">${t.subtext||''} ${t.badge?'<span style="color:var(--accent2)">['+t.badge+']</span>':''}</div>
       <div class="idea-why">${t.why}</div>
       <div class="idea-tags">
         ${t.stat?`<span class="itag">Stat: ${t.stat}</span>`:''}
         ${t.emoji?`<span class="itag">${t.emoji}</span>`:''}
-        <span class="itag">${t.layout}</span>
+        <span class="itag">${t.layout||'full'}</span>
       </div>
     `;
     card.onclick = () => selectIdea(t, card);
@@ -608,14 +738,11 @@ function selectIdea(idea, card) {
   document.querySelectorAll('.idea-card').forEach(c=>c.classList.remove('selected'));
   card.classList.add('selected');
   selectedIdea = idea;
-  // populate customize fields
   document.getElementById('cpHeadline').value = idea.headline;
   document.getElementById('cpSub').value = idea.subtext||'';
   document.getElementById('cpBadge').value = idea.badge||'';
   document.getElementById('cpStat').value = idea.stat||'';
-  // show photo controls
   document.getElementById('photoControls').style.display = 'block';
-  // if photo already loaded, show canvas
   if (photoImg) { showCanvasSection(); redraw(); }
   setStep(3);
   showToast('✅ Design selected! Ab photo upload karo');
@@ -703,18 +830,15 @@ function drawCanvas(canvas, d, colorKey, photo, pos) {
   const W = canvas.width, H = canvas.height;
   const T = THEMES[colorKey] || THEMES.dark;
 
-  // BG gradient
   const bg = ctx.createLinearGradient(0,0,W,H);
   bg.addColorStop(0, T.bg[0]); bg.addColorStop(1, T.bg[1]);
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  // Grid lines
   ctx.save(); ctx.globalAlpha=0.04; ctx.strokeStyle=T.accent; ctx.lineWidth=1;
   for(let x=0;x<W;x+=80){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
   for(let y=0;y<H;y+=80){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
   ctx.restore();
 
-  // Glow blobs
   const gb1=ctx.createRadialGradient(W*.15,H*.3,0,W*.15,H*.3,H*.65);
   gb1.addColorStop(0,hexA(T.glow,.25)); gb1.addColorStop(1,'transparent');
   ctx.fillStyle=gb1; ctx.fillRect(0,0,W,H);
@@ -722,14 +846,12 @@ function drawCanvas(canvas, d, colorKey, photo, pos) {
   gb2.addColorStop(0,hexA(T.glow,.15)); gb2.addColorStop(1,'transparent');
   ctx.fillStyle=gb2; ctx.fillRect(0,0,W,H);
 
-  // Split dark overlay for text area
   if (d.layout==='split' || photo) {
     const ov=ctx.createLinearGradient(0,0,W*.55,0);
     ov.addColorStop(0,'rgba(0,0,0,0.7)'); ov.addColorStop(1,'transparent');
     ctx.fillStyle=ov; ctx.fillRect(0,0,W,H);
   }
 
-  // PHOTO
   if (photo) {
     ctx.save();
     const iW=photo.width, iH=photo.height;
@@ -739,7 +861,6 @@ function drawCanvas(canvas, d, colorKey, photo, pos) {
     if (pos==='right' || pos==='right-full') {
       const dx = pos==='right-full' ? W-dw : W-dw*0.85;
       ctx.drawImage(photo, dx, 0, dw, dh);
-      // Left text shadow
       const ls=ctx.createLinearGradient(0,0,W*.6,0);
       ls.addColorStop(0,'rgba(0,0,0,0.75)'); ls.addColorStop(1,'transparent');
       ctx.fillStyle=ls; ctx.fillRect(0,0,W,H);
@@ -753,7 +874,6 @@ function drawCanvas(canvas, d, colorKey, photo, pos) {
       ctx.globalAlpha=0.7;
       ctx.drawImage(photo,(W-dw)/2,0,dw,dh);
       ctx.globalAlpha=1;
-      // dark vignette
       const cv=ctx.createRadialGradient(W/2,H/2,H*.1,W/2,H/2,H*.8);
       cv.addColorStop(0,'transparent'); cv.addColorStop(1,'rgba(0,0,0,0.75)');
       ctx.fillStyle=cv; ctx.fillRect(0,0,W,H);
@@ -767,27 +887,23 @@ function drawCanvas(canvas, d, colorKey, photo, pos) {
     ctx.restore();
   }
 
-  // Neon accent bar bottom
   ctx.fillStyle=T.accent;
   ctx.shadowColor=T.accent; ctx.shadowBlur=15;
   ctx.fillRect(0,H-6,W,6);
   ctx.shadowBlur=0;
 
-  // Neon line left edge
   const le=ctx.createLinearGradient(0,0,0,H);
   le.addColorStop(0,'transparent'); le.addColorStop(0.5,T.accent); le.addColorStop(1,'transparent');
   ctx.strokeStyle=le; ctx.lineWidth=4; ctx.shadowColor=T.accent; ctx.shadowBlur=10;
   ctx.beginPath(); ctx.moveTo(2,0); ctx.lineTo(2,H); ctx.stroke();
   ctx.shadowBlur=0;
 
-  // TEXT AREA: determine x based on photo position
   let textX = 44, textMaxW = W * 0.55;
   if (pos==='right'||pos==='right-full') { textX=44; textMaxW=W*0.52; }
   else if (pos==='left'||pos==='left-full') { textX=W*0.45; textMaxW=W*0.5; }
   else if (pos==='bottom-right') { textX=44; textMaxW=W*0.58; }
   else { textX=44; textMaxW=W*0.88; }
 
-  // BADGE
   if (d.badge) {
     ctx.font=`800 22px Nunito, sans-serif`;
     const bw=ctx.measureText(d.badge).width+36, bh=40;
@@ -797,7 +913,6 @@ function drawCanvas(canvas, d, colorKey, photo, pos) {
     ctx.fillText(d.badge, textX+18, 48);
   }
 
-  // HEADLINE — big, bold, multi-color style
   const hl = d.headline || '';
   const hlen = hl.length;
   const hsize = hlen>22 ? 68 : hlen>16 ? 82 : hlen>10 ? 90 : 100;
@@ -808,12 +923,10 @@ function drawCanvas(canvas, d, colorKey, photo, pos) {
   wrapText(ctx,hl,textX,hy,textMaxW,hsize+8,2);
   ctx.shadowBlur=0;
 
-  // Accent underline
   ctx.fillStyle=T.accent; ctx.shadowColor=T.glow; ctx.shadowBlur=8;
   ctx.fillRect(textX, hy+14, Math.min(220, textMaxW*0.6), 5);
   ctx.shadowBlur=0;
 
-  // SUBTEXT
   if (d.subtext) {
     const sy = hy + (hlen>16 ? hsize*2+10 : hsize+20);
     ctx.font=`700 30px Nunito, sans-serif`;
@@ -822,16 +935,13 @@ function drawCanvas(canvas, d, colorKey, photo, pos) {
     ctx.shadowBlur=0;
   }
 
-  // STAT — big accent number, bottom
   if (d.stat) {
-    const statX = textX;
     ctx.font=`900 88px Nunito, sans-serif`;
     ctx.fillStyle=T.accent; ctx.shadowColor=T.glow; ctx.shadowBlur=25;
-    ctx.fillText(d.stat, statX, H-28);
+    ctx.fillText(d.stat, textX, H-28);
     ctx.shadowBlur=0;
   }
 
-  // EMOJI (right side if no photo, or top-right)
   if (d.emoji && !photo) {
     ctx.font=`${H*.35}px serif`;
     ctx.globalAlpha=0.9;
@@ -839,7 +949,6 @@ function drawCanvas(canvas, d, colorKey, photo, pos) {
     ctx.globalAlpha=1;
   }
 
-  // Top-right glow dot
   ctx.beginPath(); ctx.arc(W-36,36,7,0,Math.PI*2);
   ctx.fillStyle=T.accent; ctx.shadowColor=T.accent; ctx.shadowBlur=18; ctx.fill(); ctx.shadowBlur=0;
 }
@@ -901,6 +1010,9 @@ uz.addEventListener('drop',e=>{
     handlePhoto({target:inp});
   }
 });
+
+// Init
+loadKey();
 </script>
 </body>
 </html>
