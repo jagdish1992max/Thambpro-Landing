@@ -209,7 +209,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 4%;h
 .cbtn-ghost{background:none;border:1px solid var(--border);color:var(--muted)}
 .cbtn-ghost:hover{color:var(--text);border-color:rgba(255,255,255,0.15)}
 
-.canvas-wrap{border-radius:16px;overflow:hidden;aspect-ratio:16/9;background:#000;border:1px solid var(--border);position:relative}
+.canvas-wrap{border-radius:16px;overflow:hidden;aspect-ratio:16/9;background:#000;border:1px solid var(--border);position:relative;max-height:70vh;margin:0 auto}
 #mainCanvas{width:100%;height:100%;display:block}
 
 /* CUSTOMIZE PANEL */
@@ -243,6 +243,21 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 4%;h
 .divider span{position:absolute;left:50%;transform:translateX(-50%) translateY(-50%);
   background:var(--card);padding:0 1rem;font-size:0.7rem;font-weight:800;letter-spacing:0.1em;
   text-transform:uppercase;color:var(--muted)}
+
+/* ALL PLATFORMS GRID */
+.platforms-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-bottom:1rem}
+.platform-block{background:var(--card2);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.platform-header{display:flex;align-items:center;justify-content:space-between;padding:0.8rem 1rem;
+  border-bottom:1px solid var(--border)}
+.platform-label{font-size:0.72rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)}
+.platform-size{font-size:0.65rem;font-weight:700;color:var(--muted);opacity:0.6}
+.platform-canvas-wrap{padding:0.8rem;display:flex;align-items:center;justify-content:center;background:#000;min-height:160px}
+.platform-canvas-wrap canvas{max-width:100%;max-height:220px;border-radius:6px;display:block}
+.platform-dl-btn{width:100%;padding:0.6rem;border:none;cursor:pointer;
+  font-family:'Nunito',sans-serif;font-size:0.78rem;font-weight:800;letter-spacing:0.05em;
+  background:linear-gradient(135deg,#ff3d5a,#ff6b35);color:#fff;
+  transition:opacity .2s}
+.platform-dl-btn:hover{opacity:0.85}
 
 /* MODEL SELECT */
 .model-row{display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.8rem}
@@ -455,39 +470,29 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 4%;h
       </div>
     </div>
 
-    <!-- STEP 4: CANVAS -->
+    <!-- STEP 4: ALL PLATFORMS PREVIEW -->
     <div class="canvas-section" id="canvasSection" style="display:none">
-      <div class="divider"><span>LIVE PREVIEW</span></div>
-      <div class="canvas-header">
-        <div class="canvas-title">🖼️ THUMBNAIL PREVIEW</div>
-        <div class="canvas-actions">
-          <button class="cbtn cbtn-ghost" onclick="generateIdeas()">🔄 New Ideas</button>
-          <button class="cbtn cbtn-primary" onclick="downloadThumb()">⬇ Download PNG</button>
-        </div>
-      </div>
-      <div class="canvas-wrap">
-        <canvas id="mainCanvas" width="1280" height="720"></canvas>
-      </div>
+      <div class="divider"><span>LIVE PREVIEW — ALL PLATFORMS</span></div>
 
-      <!-- CUSTOMIZE -->
-      <div class="customize-panel">
-        <div class="cp-title">✏️ Customize</div>
+      <!-- CUSTOMIZE PANEL -->
+      <div class="customize-panel" style="margin-bottom:1.2rem">
+        <div class="cp-title">✏️ Customize — Sab platforms pe apply hoga</div>
         <div class="cp-grid">
           <div class="cp-item">
             <span class="cp-label">Main Text</span>
-            <input class="cp-input" id="cpHeadline" type="text" oninput="redraw()">
+            <input class="cp-input" id="cpHeadline" type="text" oninput="redrawAll()">
           </div>
           <div class="cp-item">
             <span class="cp-label">Sub Text</span>
-            <input class="cp-input" id="cpSub" type="text" oninput="redraw()">
+            <input class="cp-input" id="cpSub" type="text" oninput="redrawAll()">
           </div>
           <div class="cp-item">
             <span class="cp-label">Badge Text</span>
-            <input class="cp-input" id="cpBadge" type="text" oninput="redraw()">
+            <input class="cp-input" id="cpBadge" type="text" oninput="redrawAll()">
           </div>
           <div class="cp-item">
             <span class="cp-label">Stat / Number</span>
-            <input class="cp-input" id="cpStat" type="text" oninput="redraw()">
+            <input class="cp-input" id="cpStat" type="text" oninput="redrawAll()">
           </div>
         </div>
         <div style="margin-top:1rem">
@@ -495,6 +500,10 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 4%;h
           <div class="swatch-row" id="swatchRow"></div>
         </div>
       </div>
+
+      <!-- ALL PLATFORMS GRID -->
+      <div id="allPlatformsGrid"></div>
+
     </div>
   </div>
 </div>
@@ -505,13 +514,14 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 4%;h
 <script>
 // ===================== STATE =====================
 let lang = 'en';
+let platform = 'youtube';
 let selectedModel = 'llama-3.3-70b-versatile';
 let selectedIdea = null;
 let photoImg = null;
 let photoPos = 'right';
 let currentColor = 'dark';
 let parsedData = null;
-let groqApiKey = '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';
+let groqApiKey = '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';
 
 // ===================== API KEY MANAGEMENT =====================
 function loadKey() {
@@ -576,6 +586,26 @@ function setLang(l, btn) {
   lang = l;
   document.querySelectorAll('.lpill').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
+}
+
+// ===================== PLATFORM =====================
+const PLATFORM_SIZES = {
+  youtube: [1280, 720],
+  shorts:  [1080, 1920],
+  reel:    [1080, 1920],
+  square:  [1080, 1080],
+  story:   [1080, 1920],
+};
+
+function setPlatform(p, btn) {
+  platform = p;
+  document.querySelectorAll('#platformRow .lpill').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  // Update canvas aspect ratio CSS
+  const [w, h] = PLATFORM_SIZES[p] || [1280, 720];
+  const ratio = w + '/' + h;
+  document.querySelector('.canvas-wrap').style.aspectRatio = ratio;
+  if (selectedIdea || photoImg) redraw();
 }
 
 // ===================== STEP INDICATORS =====================
@@ -790,7 +820,60 @@ function setPos(p, btn) {
 function showCanvasSection() {
   document.getElementById('canvasSection').style.display = 'block';
   buildSwatches();
+  buildPlatformsGrid();
 }
+
+// ===================== ALL PLATFORMS GRID =====================
+const ALL_PLATFORMS = [
+  { key:'youtube', label:'🎬 YouTube',  size:'1280×720',  w:1280, h:720  },
+  { key:'shorts',  label:'📱 Shorts',   size:'1080×1920', w:1080, h:1920 },
+  { key:'reel',    label:'🎞️ Reels',    size:'1080×1920', w:1080, h:1920 },
+  { key:'square',  label:'⬜ Square',   size:'1080×1080', w:1080, h:1080 },
+  { key:'story',   label:'📖 Story',    size:'1080×1920', w:1080, h:1920 },
+];
+
+function buildPlatformsGrid() {
+  const grid = document.getElementById('allPlatformsGrid');
+  grid.innerHTML = '<div class="platforms-grid" id="platformsGrid"></div>';
+  const pg = document.getElementById('platformsGrid');
+
+  ALL_PLATFORMS.forEach(p => {
+    const block = document.createElement('div');
+    block.className = 'platform-block';
+    block.innerHTML = `
+      <div class="platform-header">
+        <span class="platform-label">${p.label}</span>
+        <span class="platform-size">${p.size}</span>
+      </div>
+      <div class="platform-canvas-wrap">
+        <canvas id="canvas_${p.key}" width="${p.w}" height="${p.h}"></canvas>
+      </div>
+      <button class="platform-dl-btn" onclick="downloadPlatform('${p.key}','${p.w}','${p.h}')">⬇ Download ${p.size}</button>
+    `;
+    pg.appendChild(block);
+  });
+
+  redrawAll();
+}
+
+function redrawAll() {
+  const idea = {
+    headline: document.getElementById('cpHeadline').value || (selectedIdea&&selectedIdea.headline) || 'YOUR TITLE',
+    subtext:  document.getElementById('cpSub').value,
+    badge:    document.getElementById('cpBadge').value,
+    stat:     document.getElementById('cpStat').value,
+    emoji:    selectedIdea ? selectedIdea.emoji : '',
+    layout:   selectedIdea ? selectedIdea.layout : 'full',
+  };
+
+  ALL_PLATFORMS.forEach(p => {
+    const canvas = document.getElementById('canvas_' + p.key);
+    if (canvas) drawCanvas(canvas, idea, currentColor, photoImg, photoPos);
+  });
+}
+
+// Keep redraw as alias
+function redraw() { redrawAll(); }
 
 // ===================== SWATCHES =====================
 function buildSwatches() {
@@ -812,19 +895,6 @@ function buildSwatches() {
 }
 
 // ===================== DRAW =====================
-function redraw() {
-  const canvas = document.getElementById('mainCanvas');
-  const idea = {
-    headline: document.getElementById('cpHeadline').value || (selectedIdea&&selectedIdea.headline) || 'YOUR TITLE',
-    subtext:  document.getElementById('cpSub').value,
-    badge:    document.getElementById('cpBadge').value,
-    stat:     document.getElementById('cpStat').value,
-    emoji:    selectedIdea ? selectedIdea.emoji : '',
-    layout:   selectedIdea ? selectedIdea.layout : 'full',
-  };
-  drawCanvas(canvas, idea, currentColor, photoImg, photoPos);
-}
-
 function drawCanvas(canvas, d, colorKey, photo, pos) {
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
@@ -976,16 +1046,19 @@ function wrapText(ctx,text,x,y,maxW,lh,maxL){
 }
 
 // ===================== DOWNLOAD =====================
-function downloadThumb() {
-  const canvas = document.getElementById('mainCanvas');
+function downloadPlatform(platformKey, w, h) {
+  const canvas = document.getElementById('canvas_' + platformKey);
+  if (!canvas) return;
   const a = document.createElement('a');
-  const topic = document.getElementById('topicInput').value.substring(0,25).replace(/\s+/g,'-').toLowerCase();
-  a.download = `thumbpro-${topic}.png`;
+  const topic = document.getElementById('topicInput').value.substring(0,20).replace(/\s+/g,'-').toLowerCase();
+  a.download = `thumbpro-${topic}-${platformKey}-${w}x${h}.png`;
   a.href = canvas.toDataURL('image/png');
   a.click();
-  showToast('✅ 1280×720 PNG downloaded!');
+  showToast(`✅ ${w}×${h} PNG downloaded!`);
   setStep(4);
 }
+
+function downloadThumb() { downloadPlatform('youtube', 1280, 720); }
 
 // ===================== TOAST =====================
 let toastT;
@@ -1015,4 +1088,4 @@ uz.addEventListener('drop',e=>{
 loadKey();
 </script>
 </body>
-</html>
+                                                </html>
